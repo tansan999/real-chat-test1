@@ -18,7 +18,6 @@ const MessageSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    // createdAt добавит дату создания автоматически
   },
   { timestamps: true }
 );

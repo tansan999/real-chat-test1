@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 const app = express();
 const route = require("./route");
 const { addUser, findUser, getRoomUsers } = require("./user");
-const Message = require("./models/Message"); // 1. Импортируем модель сообщений
+const Message = require("./models/Message"); 
 
 app.use(cors({ origin: "*" }));
 app.use(route);
@@ -20,7 +20,6 @@ const io = new Server(server, {
   },
 });
 
-// Твоя строка подключения
 const MONGO_URI = "mongodb+srv://kudash1525_db_user:GBbokt5ovNp10zrT@cluster0.khrt3lp.mongodb.net/?appName=Cluster0";
 
 mongoose
@@ -30,7 +29,7 @@ mongoose
 
 io.on("connection", (socket) => {
   
-  socket.on("join", async ({ name, room }) => { // Добавили async
+  socket.on("join", async ({ name, room }) => { 
     socket.join(room);
 
     const { user, isExist } = addUser({ name, room });
@@ -39,16 +38,13 @@ io.on("connection", (socket) => {
       ? `${user.name}, welcome back`
       : `Welcome ${user.name}`;
 
-    // 2. ЗАГРУЗКА ИСТОРИИ: Ищем сообщения из этой комнаты в базе
     try {
       const history = await Message.find({ room: user.room });
-      // Отправляем историю только тому, кто только что вошел
       socket.emit("history", { data: history });
     } catch (error) {
       console.error("Error loading history:", error);
     }
 
-    // Приветствие (не сохраняем в БД, это системное)
     socket.emit("message", {
       data: { 
         user: { name: "Admin" }, 
@@ -76,7 +72,6 @@ io.on("connection", (socket) => {
     if (user) {
       const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       
-      // 3. СОХРАНЕНИЕ: Создаем запись в базе
       const newMessage = new Message({
         room: user.room,
         user: user.name,
@@ -84,7 +79,7 @@ io.on("connection", (socket) => {
         time: time
       });
 
-      await newMessage.save(); // Ждем сохранения
+      await newMessage.save(); 
 
       io.to(user.room).emit("message", { data: { user, message, time } });
     }

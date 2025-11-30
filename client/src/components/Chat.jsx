@@ -30,19 +30,16 @@ const Chat = () => {
     });
   }, []);
 
-  // !!! НОВОЕ: Слушаем историю сообщений из базы !!!
   useEffect(() => {
     socket.on("history", ({ data }) => {
-      // Преобразуем данные из БД в формат, который понимает наш компонент Messages
-      const formattedHistory = data.map(msg => ({
+      const formattedHistory = data.map((msg) => ({
         user: { name: msg.user },
         message: msg.message,
-        time: msg.time
+        time: msg.time,
       }));
       setState((_state) => [...formattedHistory, ..._state]);
     });
   }, []);
-  // ------------------------------------------------
 
   useEffect(() => {
     socket.on("joinRoom", ({ data: { users } }) => {
@@ -52,8 +49,8 @@ const Chat = () => {
 
   useEffect(() => {
     socket.on("typing", ({ data }) => {
-        setTypingStatus(`${data} is typing...`);
-        setTimeout(() => setTypingStatus(""), 2000); 
+      setTypingStatus(`${data} is typing...`);
+      setTimeout(() => setTypingStatus(""), 2000);
     });
   }, []);
 
@@ -64,7 +61,7 @@ const Chat = () => {
 
   const handleChange = (e) => {
     setMessage(e.target.value);
-    socket.emit("typing", { params }); 
+    socket.emit("typing", { params });
   };
 
   const handleSubmit = (e) => {
@@ -136,7 +133,6 @@ const Chat = () => {
 
 export default Chat;
 
-/* --- STYLES --- */
 const PageContainer = styled("div")({
   display: "flex",
   justifyContent: "center",
@@ -220,11 +216,11 @@ const MessagesArea = styled("div")({
 });
 
 const TypingIndicator = styled("div")({
-    color: "#a0a0a0",
-    fontSize: "12px",
-    fontStyle: "italic",
-    marginLeft: "10px",
-    marginTop: "5px",
+  color: "#a0a0a0",
+  fontSize: "12px",
+  fontStyle: "italic",
+  marginLeft: "10px",
+  marginTop: "5px",
 });
 
 const ChatFooter = styled("form")({
