@@ -24,18 +24,30 @@ io.on("connection", (socket) => {
 
     const { user, isExist } = addUser({ name, room });
 
-    console.log("isExist", isExist);
-
-    const userMassage = isExist
-      ? `${user.name} , here you go again`
-      : `Hey my love ${user.name}`;
+    const userMessage = isExist
+      ? `${user.name}, welcome back`
+      : `Welcome ${user.name}`;
 
     socket.emit("message", {
-      data: { user: { name: "Admin" }, message: userMassage },
+      data: {
+        user: { name: "Admin" },
+        message: userMessage,
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      },
     });
 
     socket.broadcast.to(user.room).emit("message", {
-      data: { user: { name: "Admin" }, message: `${user.name} has joined` },
+      data: {
+        user: { name: "Admin" },
+        message: `${user.name} has joined`,
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      },
     });
 
     io.to(user.room).emit("joinRoom", {
@@ -47,7 +59,18 @@ io.on("connection", (socket) => {
     const user = findUser(params);
 
     if (user) {
-      io.to(user.room).emit("message", { data: { user, message } });
+      const time = new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      io.to(user.room).emit("message", { data: { user, message, time } });
+    }
+  });
+
+  socket.on("typing", ({ params }) => {
+    const user = findUser(params);
+    if (user) {
+      socket.broadcast.to(user.room).emit("typing", { data: user.name });
     }
   });
 

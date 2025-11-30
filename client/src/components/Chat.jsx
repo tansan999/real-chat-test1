@@ -16,6 +16,7 @@ const Chat = () => {
   const [message, setMessage] = useState("");
   const [open, setOpen] = useState(false);
   const [users, setUsers] = useState(0);
+  const [typingStatus, setTypingStatus] = useState("");
 
   useEffect(() => {
     const searchParams = Object.fromEntries(new URLSearchParams(search));
@@ -35,6 +36,13 @@ const Chat = () => {
     });
   }, []);
 
+  useEffect(() => {
+    socket.on("typing", ({ data }) => {
+      setTypingStatus(`${data} is typing...`);
+      setTimeout(() => setTypingStatus(""), 2000);
+    });
+  }, []);
+
   const leftRoom = () => {
     socket.emit("leftRoom", { params });
     navigate("/");
@@ -42,6 +50,7 @@ const Chat = () => {
 
   const handleChange = (e) => {
     setMessage(e.target.value);
+    socket.emit("typing", { params });
   };
 
   const handleSubmit = (e) => {
@@ -72,6 +81,8 @@ const Chat = () => {
 
         <MessagesArea>
           <Masseges messages={state} name={params.name} />
+          {/* Если кто-то печатает, показываем это внизу чата */}
+          {typingStatus && <TypingIndicator>{typingStatus}</TypingIndicator>}
         </MessagesArea>
 
         <ChatFooter onSubmit={handleSubmit}>
@@ -193,6 +204,14 @@ const MessagesArea = styled("div")({
     backgroundColor: "#444",
     borderRadius: "3px",
   },
+});
+
+const TypingIndicator = styled("div")({
+  color: "#a0a0a0",
+  fontSize: "12px",
+  fontStyle: "italic",
+  marginLeft: "10px",
+  marginTop: "5px",
 });
 
 export const MessageWrapper = styled("div", {
