@@ -1,3 +1,4 @@
+const User = require("./models/User");
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -5,8 +6,8 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const app = express();
 const route = require("./route");
-const { addUser, findUser, getRoomUsers } = require("./user");
-const Message = require("./models/Message"); 
+const { addUser, findUser, getRoomUsers, removeUser } = require("./user");
+const Message = require("./models/Message");
 
 app.use(cors({ origin: "*" }));
 app.use(route);
@@ -20,16 +21,26 @@ const io = new Server(server, {
   },
 });
 
-const MONGO_URI = "mongodb+srv://kudash1525_db_user:GBbokt5ovNp10zrT@cluster0.khrt3lp.mongodb.net/?appName=Cluster0";
+const MONGO_URI =
+  "mongodb+srv://kudash1525_db_user:GBbokt5ovNp10zrT@cluster0.khrt3lp.mongodb.net/?appName=Cluster0";
 
 mongoose
   .connect(MONGO_URI)
   .then(() => console.log("🔥 DB Connected"))
   .catch((err) => console.error("❌ DB Error:", err));
 
+app.get("/users", async (req, res) => {
+  try {
+    const users = await User.find({});
+    res.json(users);
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({ message: "Error fetching users" });
+  }
+});
+
 io.on("connection", (socket) => {
-  
-  socket.on("join", async ({ name, room }) => { 
+  socket.on("join", async ({ name, room }) => {
     socket.join(room);
 
     const { user, isExist } = addUser({ name, room });
@@ -46,18 +57,24 @@ io.on("connection", (socket) => {
     }
 
     socket.emit("message", {
-      data: { 
-        user: { name: "Admin" }, 
+      data: {
+        user: { name: "Admin" },
         message: userMessage,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
       },
     });
 
     socket.broadcast.to(user.room).emit("message", {
-      data: { 
-        user: { name: "Admin" }, 
+      data: {
+        user: { name: "Admin" },
         message: `${user.name} has joined`,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
       },
     });
 
@@ -66,29 +83,49 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("sendMessage", async ({ message, params }) => { // Добавили async
+  socket.on("sendMessage", async ({ message, params }) => {
     const user = findUser(params);
 
     if (user) {
-      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      
+      const time = new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
       const newMessage = new Message({
         room: user.room,
         user: user.name,
         message: message,
-        time: time
+        time: time,
       });
 
-      await newMessage.save(); 
+      await newMessage.save();
 
       io.to(user.room).emit("message", { data: { user, message, time } });
     }
   });
 
+  socket.on("kick", ({ params }) => {
+    const user = removeUser(params);
+
+    if (user) {
+      io.to(user.room).emit("message", {
+        data: {
+          user: { name: "Admin" },
+          message: `${user.name} has been kicked.`,
+        },
+      });
+
+      io.to(user.room).emit("joinRoom", {
+        data: { users: getRoomUsers(user.room) },
+      });
+    }
+  });
+
   socket.on("typing", ({ params }) => {
     const user = findUser(params);
-    if(user) {
-        socket.broadcast.to(user.room).emit("typing", { data: user.name });
+    if (user) {
+      socket.broadcast.to(user.room).emit("typing", { data: user.name });
     }
   });
 

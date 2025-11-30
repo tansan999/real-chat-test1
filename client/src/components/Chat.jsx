@@ -5,6 +5,7 @@ import { styled } from "@mui/material/styles";
 import iconEmoji from "../images/emoji.png";
 import EmojiPicker from "emoji-picker-react";
 import Masseges from "./Masseges";
+import Sidebar from "./Sidebar";
 
 const socket = io.connect("http://localhost:5000");
 
@@ -17,6 +18,8 @@ const Chat = () => {
   const [open, setOpen] = useState(false);
   const [users, setUsers] = useState(0);
   const [typingStatus, setTypingStatus] = useState("");
+  const [roomUsers, setRoomUsers] = useState([]);
+  const [currentUser, setCurrentUser] = useState({});
 
   useEffect(() => {
     const searchParams = Object.fromEntries(new URLSearchParams(search));
@@ -54,6 +57,31 @@ const Chat = () => {
     });
   }, []);
 
+  useEffect(() => {
+    socket.on("joinRoom", ({ data: { users } }) => {
+      setUsers(users.length);
+      setRoomUsers(users);
+
+      const myUser = users.find((u) => u.name === params.name);
+      if (myUser) setCurrentUser(myUser);
+    });
+  }, [params.name]);
+
+  const handleKick = (targetUserName) => {
+    socket.emit("kick", {
+      params: { room: params.room, name: targetUserName },
+    });
+  };
+
+  useEffect(() => {
+    if (roomUsers.length > 0) {
+      const amIInRoom = roomUsers.find((u) => u.name === params.name);
+      if (!amIInRoom) {
+        navigate("/");
+      }
+    }
+  }, [roomUsers, params.name, navigate]);
+
   const leftRoom = () => {
     socket.emit("leftRoom", { params });
     navigate("/");
@@ -81,51 +109,56 @@ const Chat = () => {
   return (
     <PageContainer>
       <ChatCard>
-        <ChatHeader>
-          <RoomInfo>
-            <RoomTitle>{params.room}</RoomTitle>
-            <UserCount>{users} users online</UserCount>
-          </RoomInfo>
-          <LeaveButton onClick={leftRoom}>Leave Room</LeaveButton>
-        </ChatHeader>
+        <Sidebar
+          users={roomUsers}
+          currentUser={currentUser}
+          onKick={handleKick}
+        />
 
-        <MessagesArea>
-          <Masseges messages={state} name={params.name} />
-          {typingStatus && <TypingIndicator>{typingStatus}</TypingIndicator>}
-        </MessagesArea>
+        <ChatArea>
+          <ChatHeader>
+            <RoomInfo>
+              <RoomTitle>{params.room}</RoomTitle>
+              <UserCount>{users} users online</UserCount>
+            </RoomInfo>
+            <LeaveButton onClick={leftRoom}>Leave Room</LeaveButton>
+          </ChatHeader>
 
-        <ChatFooter onSubmit={handleSubmit}>
-          <InputContainer>
-            <StyledInput
-              type="text"
-              name="message"
-              placeholder="What do you want to say?"
-              onChange={handleChange}
-              value={message}
-              autoCapitalize="off"
-              autoComplete="off"
-              required
-            />
-          </InputContainer>
+          <MessagesArea>
+            <Masseges messages={state} name={params.name} />
+            {typingStatus && <TypingIndicator>{typingStatus}</TypingIndicator>}
+          </MessagesArea>
 
-          <EmojiContainer>
-            <EmojiIcon
-              src={iconEmoji}
-              alt="emoji"
-              onClick={() => setOpen(!open)}
-            />
-
-            {open && (
-              <EmojiPickerWrapper>
-                <EmojiPicker onEmojiClick={onEmojiClick} theme="dark" />
-              </EmojiPickerWrapper>
-            )}
-          </EmojiContainer>
-
-          <SendButtonContainer>
-            <SendButton type="submit" value="Send" />
-          </SendButtonContainer>
-        </ChatFooter>
+          <ChatFooter onSubmit={handleSubmit}>
+            <InputContainer>
+              <StyledInput
+                type="text"
+                name="message"
+                placeholder="What do you want to say?"
+                onChange={handleChange}
+                value={message}
+                autoCapitalize="off"
+                autoComplete="off"
+                required
+              />
+            </InputContainer>
+            <EmojiContainer>
+              <EmojiIcon
+                src={iconEmoji}
+                alt="emoji"
+                onClick={() => setOpen(!open)}
+              />
+              {open && (
+                <EmojiPickerWrapper>
+                  <EmojiPicker onEmojiClick={onEmojiClick} theme="dark" />
+                </EmojiPickerWrapper>
+              )}
+            </EmojiContainer>
+            <SendButtonContainer>
+              <SendButton type="submit" value="Send" />
+            </SendButtonContainer>
+          </ChatFooter>
+        </ChatArea>
       </ChatCard>
     </PageContainer>
   );
@@ -145,14 +178,20 @@ const PageContainer = styled("div")({
 
 const ChatCard = styled("div")({
   width: "100%",
-  maxWidth: "800px",
-  height: "85vh",
+  maxWidth: "1100px",
+  height: "90vh",
   backgroundColor: "#252525",
   borderRadius: "20px",
   boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
   display: "flex",
-  flexDirection: "column",
   overflow: "hidden",
+});
+
+const ChatArea = styled("div")({
+  flex: 1,
+  display: "flex",
+  flexDirection: "column",
+  height: "100%",
 });
 
 const ChatHeader = styled("div")({
