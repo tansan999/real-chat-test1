@@ -30,6 +30,20 @@ const Chat = () => {
     });
   }, []);
 
+  // !!! НОВОЕ: Слушаем историю сообщений из базы !!!
+  useEffect(() => {
+    socket.on("history", ({ data }) => {
+      // Преобразуем данные из БД в формат, который понимает наш компонент Messages
+      const formattedHistory = data.map(msg => ({
+        user: { name: msg.user },
+        message: msg.message,
+        time: msg.time
+      }));
+      setState((_state) => [...formattedHistory, ..._state]);
+    });
+  }, []);
+  // ------------------------------------------------
+
   useEffect(() => {
     socket.on("joinRoom", ({ data: { users } }) => {
       setUsers(users.length);
@@ -38,8 +52,8 @@ const Chat = () => {
 
   useEffect(() => {
     socket.on("typing", ({ data }) => {
-      setTypingStatus(`${data} is typing...`);
-      setTimeout(() => setTypingStatus(""), 2000);
+        setTypingStatus(`${data} is typing...`);
+        setTimeout(() => setTypingStatus(""), 2000); 
     });
   }, []);
 
@@ -50,7 +64,7 @@ const Chat = () => {
 
   const handleChange = (e) => {
     setMessage(e.target.value);
-    socket.emit("typing", { params });
+    socket.emit("typing", { params }); 
   };
 
   const handleSubmit = (e) => {
@@ -73,15 +87,13 @@ const Chat = () => {
         <ChatHeader>
           <RoomInfo>
             <RoomTitle>{params.room}</RoomTitle>
-            <UserCount>{state.length} messages</UserCount>
+            <UserCount>{users} users online</UserCount>
           </RoomInfo>
-          <div>{users}users in this room </div>
           <LeaveButton onClick={leftRoom}>Leave Room</LeaveButton>
         </ChatHeader>
 
         <MessagesArea>
           <Masseges messages={state} name={params.name} />
-          {/* Если кто-то печатает, показываем это внизу чата */}
           {typingStatus && <TypingIndicator>{typingStatus}</TypingIndicator>}
         </MessagesArea>
 
@@ -124,6 +136,7 @@ const Chat = () => {
 
 export default Chat;
 
+/* --- STYLES --- */
 const PageContainer = styled("div")({
   display: "flex",
   justifyContent: "center",
@@ -207,44 +220,11 @@ const MessagesArea = styled("div")({
 });
 
 const TypingIndicator = styled("div")({
-  color: "#a0a0a0",
-  fontSize: "12px",
-  fontStyle: "italic",
-  marginLeft: "10px",
-  marginTop: "5px",
-});
-
-export const MessageWrapper = styled("div", {
-  shouldForwardProp: (prop) => prop !== "isMe",
-})(({ isMe }) => ({
-  display: "flex",
-  justifyContent: isMe ? "flex-end" : "flex-start",
-}));
-
-export const MessageBubble = styled("div", {
-  shouldForwardProp: (prop) => prop !== "isMe",
-})(({ isMe }) => ({
-  maxWidth: "60%",
-  padding: "10px 16px",
-  borderRadius: "14px",
-  borderBottomLeftRadius: isMe ? "14px" : "2px",
-  borderBottomRightRadius: isMe ? "2px" : "14px",
-  backgroundColor: isMe ? "#007FFF" : "#3d3d3d",
-  color: "#ffffff",
-  boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
-}));
-
-export const SenderName = styled("div")({
-  fontSize: "11px",
-  color: "rgba(255,255,255,0.6)",
-  marginBottom: "4px",
-  fontWeight: "bold",
-});
-
-export const MessageText = styled("div")({
-  fontSize: "15px",
-  lineHeight: "1.4",
-  wordBreak: "break-word",
+    color: "#a0a0a0",
+    fontSize: "12px",
+    fontStyle: "italic",
+    marginLeft: "10px",
+    marginTop: "5px",
 });
 
 const ChatFooter = styled("form")({
