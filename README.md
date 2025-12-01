@@ -1,36 +1,115 @@
-# Real-time Chat Application
+````markdown
+# Real-time Chat Application 💬
 
-A real-time chat application built for the Sibers test assignment. The app allows users to join specific rooms, chat in real-time, and manage room participants.
+A full-stack real-time chat application developed as a test assignment for Sibers. The app supports real-time messaging, user profiles, persistent history, and admin moderation features.
 
-## 🚀 Features
+## 🚀 Features implemented
 
-- **Real-time Messaging:** Instant communication using Socket.io.
-- **Room Management:** Users can create new rooms or join existing ones.
-- **User List:** View active participants in the current room.
-- **Member Search:** Filter users in the sidebar by name.
-- **Admin Privileges:** The creator of the room (first user) gets admin rights.
-- **Moderation:** Admins can kick other users from the room.
-- **Data Persistence:** Messages and users are stored in MongoDB.
-- **Typing Indicators:** See when other users are typing.
-- **Emoji Support:** Built-in emoji picker.
+* **Real-time Messaging:** Powered by Socket.io for instant communication.
+* **Persistent History:** All messages and users are stored in MongoDB (Atlas).
+* **User Profiles:** Detailed portfolio view (Email, Phone, Company) pulled from the database.
+* **Room Management:** Join existing active rooms or create new ones.
+* **Admin Moderation:** The creator of the room (first user) gets `Admin` status and can **kick** other users.
+* **Search:** Filter active users in the sidebar.
+* **UI/UX:** Responsive Material UI design with Emoji support.
 
 ## 🛠 Tech Stack
 
-- **Frontend:** React.js, Material UI (MUI), Emoji Picker React.
-- **Backend:** Node.js, Express.
-- **Database:** MongoDB (Atlas).
-- **Communication:** Socket.io (WebSockets).
+* **Frontend:** React.js, Material UI (MUI), Emoji Picker React.
+* **Backend:** Node.js, Express.js.
+* **Database:** MongoDB Atlas (Cloud).
+* **WebSocket:** Socket.io.
 
-## 📦 Installation & Setup
+## 📦 Installation & Setup Guide
+
+Follow these steps to run the project locally.
 
 ### Prerequisites
-
-Make sure you have **Node.js** installed on your machine.
+* Node.js installed.
+* Git installed.
 
 ### 1. Clone the repository
-
 ```bash
 git clone <https://github.com/tansan999/real-chat-test1.git>
 cd real-chat-test
-```
-[Kudaibergen]
+````
+
+### 2\. Backend Setup (Server)
+
+The server handles the database connection and socket events.
+
+1.  Navigate to the server directory:
+
+    ```bash
+    cd server
+    ```
+
+2.  Install dependencies:
+
+    ```bash
+    npm install
+    ```
+
+3.  **Important:** Populate the database with test users (Portfolio data):
+
+    ```bash
+    node seed.js
+    ```
+
+    *(You should see: "✅ Successfully imported 15 users\!")*
+
+4.  Start the server:
+
+    ```bash
+    npm start
+    ```
+
+    *The server will run on `http://localhost:5000`*
+
+### 3\. Frontend Setup (Client)
+
+Open a **new terminal** window for the client.
+
+1.  Navigate to the client directory:
+    ```bash
+    cd client
+    ```
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  Start the React app:
+    ```bash
+    npm start
+    ```
+    *The app will open at `http://localhost:3000`*
+
+## 🧪 How to Test
+
+1.  Open the app in your browser.
+2.  **Login:** Enter the username **`Kudaibergen`** (or `Anna Conroy`) to see the full profile data.
+      * *Note: Use the exact usernames from the database to load profile info.*
+3.  **Room:** Enter any room name (e.g., `General`).
+4.  **Admin Test:** Open the app in a second browser window (Incognito mode), login as a different user, and join the same room.
+      * The first user will see a **Crown 👑** icon.
+      * The Admin can hover over the second user in the sidebar and click **✕** to kick them.
+
+## 👤 Author
+
+**Kudaibergen**
+
+  * Fullstack Developer Candidate
+
+<!-- end list -->
+
+````
+
+### Финальный шаг (Git Push)
+
+После того как сохранишь этот файл, отправляй всё на GitHub:
+
+```bash
+git add .
+git commit -m "Add detailed README documentation"
+git push
+````
