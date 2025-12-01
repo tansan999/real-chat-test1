@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import { styled } from "@mui/material/styles";
-import iconEmoji from "../images/emoji.png";
+import iconEmoji from "../images/happy-svgrepo-com.svg";
 import EmojiPicker from "emoji-picker-react";
 import Masseges from "./Massages";
 import Sidebar from "./Sidebar";
@@ -12,6 +12,8 @@ const socket = io.connect("http://localhost:5000");
 const Chat = () => {
   const { search } = useLocation();
   const navigate = useNavigate();
+
+  // State management
   const [params, setParams] = useState({ room: "", user: "" });
   const [state, setState] = useState([]);
   const [message, setMessage] = useState("");
@@ -21,18 +23,21 @@ const Chat = () => {
   const [roomUsers, setRoomUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState({});
 
+  // Join the room on component mount
   useEffect(() => {
     const searchParams = Object.fromEntries(new URLSearchParams(search));
     setParams(searchParams);
     socket.emit("join", searchParams);
   }, [search]);
 
+  // Listener: Receive new messages
   useEffect(() => {
     socket.on("message", ({ data }) => {
       setState((_state) => [..._state, data]);
     });
   }, []);
 
+  // Listener: Load message history from DB
   useEffect(() => {
     socket.on("history", ({ data }) => {
       const formattedHistory = data.map((msg) => ({
@@ -45,12 +50,7 @@ const Chat = () => {
     });
   }, []);
 
-  useEffect(() => {
-    socket.on("joinRoom", ({ data: { users } }) => {
-      setUsers(users.length);
-    });
-  }, []);
-
+  // Listener: Typing indicator
   useEffect(() => {
     socket.on("typing", ({ data }) => {
       setTypingStatus(`${data} is typing...`);
@@ -58,6 +58,7 @@ const Chat = () => {
     });
   }, []);
 
+  // Listener: Update room user list & identify current user
   useEffect(() => {
     socket.on("joinRoom", ({ data: { users } }) => {
       setUsers(users.length);
@@ -68,27 +69,31 @@ const Chat = () => {
     });
   }, [params.name]);
 
+  // Admin function: Kick a user
   const handleKick = (targetUserName) => {
     socket.emit("kick", {
       params: { room: params.room, name: targetUserName },
     });
   };
 
+  // Check if I was kicked from the room
   useEffect(() => {
     if (roomUsers.length > 0) {
       const amIInRoom = roomUsers.find((u) => u.name === params.name);
       if (!amIInRoom) {
-        navigate("/");
+        navigate("/"); // Redirect to login
       }
     }
   }, [roomUsers, params.name, navigate]);
 
+  // Listener: Message deleted
   useEffect(() => {
     socket.on("deleteMessage", ({ id }) => {
       setState((_state) => _state.filter((msg) => msg._id !== id));
     });
   }, []);
 
+  // Handler: Delete message
   const handleDeleteMessage = (id) => {
     if (id) {
       socket.emit("deleteMessage", { id, room: params.room });
@@ -122,6 +127,7 @@ const Chat = () => {
   return (
     <PageContainer>
       <ChatCard>
+        {/* Left Sidebar with Users */}
         <Sidebar
           users={roomUsers}
           currentUser={currentUser}

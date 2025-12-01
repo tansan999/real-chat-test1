@@ -22,6 +22,7 @@ const Main = () => {
   const [values, setValues] = useState({ [NAME]: "", [ROOM]: "" });
   const [rooms, setRooms] = useState([]);
 
+  // Load active rooms from backend
   useEffect(() => {
     fetch("http://localhost:5000/rooms")
       .then((res) => res.json())
@@ -33,11 +34,13 @@ const Main = () => {
     setValues({ ...values, [name]: value });
   };
 
+  // Prevent submission if fields are empty
   const handleClick = (e) => {
     const isDisabled = Object.values(values).some((v) => !v);
     if (isDisabled) e.preventDefault();
   };
 
+  // Helper to quick select a room
   const selectRoom = (roomName) => {
     setValues({ ...values, room: roomName });
   };
@@ -80,6 +83,7 @@ const Main = () => {
               onChange={handleChange}
             />
 
+            {/* Display list of active rooms if available */}
             {rooms.length > 0 && (
               <RoomList>
                 <RoomListTitle>Active Rooms:</RoomListTitle>

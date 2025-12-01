@@ -1,12 +1,23 @@
 import React, { useState } from "react";
 import { styled } from "@mui/material/styles";
+import ProfileSidebar from "./ProfileSidebar";
 
 const Sidebar = ({ users = [], currentUser, onKick }) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedUser, setSelectedUser] = useState(null);
 
+  // Filter users based on search input
   const filteredUsers = users.filter((user) =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleUserClick = (user) => {
+    setSelectedUser(user);
+  };
+
+  const handleClose = () => {
+    setSelectedUser(null);
+  };
 
   return (
     <SidebarContainer>
@@ -22,26 +33,45 @@ const Sidebar = ({ users = [], currentUser, onKick }) => {
       <UserList>
         {filteredUsers.map((user) => {
           const isMe = user.name === currentUser.name;
+          // Show kick button only if I am Admin and user is not me
           const showKick = currentUser.isAdmin && !isMe;
 
           return (
-            <UserItem key={user.name}>
-              <Avatar>{user.name.charAt(0).toUpperCase()}</Avatar>
+            <UserItem key={user.name} onClick={() => handleUserClick(user)}>
+              {user.avatar ? (
+                <AvatarImg src={user.avatar} alt={user.name} />
+              ) : (
+                <Avatar>{user.name.charAt(0).toUpperCase()}</Avatar>
+              )}
+
               <UserInfo>
                 <UserName>
                   {user.name}
                   {user.isAdmin && <AdminBadge>👑</AdminBadge>}
                   {isMe && <MeBadge>(You)</MeBadge>}
                 </UserName>
+                <UserStatus>{user.company?.name || "Online"}</UserStatus>
               </UserInfo>
 
               {showKick && (
-                <KickButton onClick={() => onKick(user.name)}>✕</KickButton>
+                <KickButton
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent opening profile modal
+                    onKick(user.name);
+                  }}
+                >
+                  ✕
+                </KickButton>
               )}
             </UserItem>
           );
         })}
       </UserList>
+
+      {/* Show Profile Modal if user selected */}
+      {selectedUser && (
+        <ProfileSidebar user={selectedUser} onClose={handleClose} />
+      )}
     </SidebarContainer>
   );
 };
@@ -92,6 +122,7 @@ const UserItem = styled("div")({
   alignItems: "center",
   padding: "10px 15px",
   transition: "background 0.2s",
+  cursor: "pointer",
   "&:hover": { backgroundColor: "#2c2c2c" },
   justifyContent: "space-between",
 });
@@ -107,6 +138,16 @@ const Avatar = styled("div")({
   justifyContent: "center",
   color: "white",
   fontWeight: "bold",
+  flexShrink: 0,
+});
+
+const AvatarImg = styled("img")({
+  width: "40px",
+  height: "40px",
+  borderRadius: "50%",
+  marginRight: "12px",
+  objectFit: "cover",
+  flexShrink: 0,
 });
 
 const UserInfo = styled("div")({
@@ -123,6 +164,15 @@ const UserName = styled("div")({
   display: "flex",
   alignItems: "center",
   gap: "5px",
+});
+
+const UserStatus = styled("div")({
+  color: "#888",
+  fontSize: "12px",
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  maxWidth: "150px",
 });
 
 const AdminBadge = styled("span")({
