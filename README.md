@@ -1,4 +1,3 @@
-````markdown
 # Real-time Chat Application 💬
 
 A full-stack real-time chat application developed as a test assignment for Sibers. The app supports real-time messaging, user profiles, persistent history, and admin moderation features.
@@ -102,14 +101,4 @@ Open a **new terminal** window for the client.
 
 <!-- end list -->
 
-````
-
-### Финальный шаг (Git Push)
-
-После того как сохранишь этот файл, отправляй всё на GitHub:
-
-```bash
-git add .
-git commit -m "Add detailed README documentation"
-git push
 ````
