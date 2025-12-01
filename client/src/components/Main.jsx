@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import LoginIcon from "@mui/icons-material/Login";
+import { useEffect } from "react";
 
 const FIELDS = {
   NAME: "name",
@@ -19,6 +20,14 @@ const FIELDS = {
 const Main = () => {
   const { NAME, ROOM } = FIELDS;
   const [values, setValues] = useState({ [NAME]: "", [ROOM]: "" });
+  const [rooms, setRooms] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:5000/rooms")
+      .then((res) => res.json())
+      .then((data) => setRooms(data))
+      .catch((err) => console.error(err));
+  }, []);
 
   const handleChange = ({ target: { value, name } }) => {
     setValues({ ...values, [name]: value });
@@ -27,6 +36,10 @@ const Main = () => {
   const handleClick = (e) => {
     const isDisabled = Object.values(values).some((v) => !v);
     if (isDisabled) e.preventDefault();
+  };
+
+  const selectRoom = (roomName) => {
+    setValues({ ...values, room: roomName });
   };
 
   return (
@@ -67,6 +80,17 @@ const Main = () => {
               onChange={handleChange}
             />
 
+            {rooms.length > 0 && (
+              <RoomList>
+                <RoomListTitle>Active Rooms:</RoomListTitle>
+                {rooms.map((r, i) => (
+                  <RoomChip key={i} onClick={() => selectRoom(r)}>
+                    {r}
+                  </RoomChip>
+                ))}
+              </RoomList>
+            )}
+
             <StyledLink
               to={`/chat?name=${values[NAME]}&room=${values[ROOM]}`}
               onClick={handleClick}
@@ -88,13 +112,41 @@ const Main = () => {
 
 export default Main;
 
+const RoomList = styled("div")({
+  marginTop: "10px",
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "8px",
+  justifyContent: "center",
+});
+
+const RoomListTitle = styled("div")({
+  width: "100%",
+  fontSize: "12px",
+  color: "#777",
+  marginBottom: "5px",
+  textAlign: "center",
+});
+
+const RoomChip = styled("div")({
+  padding: "5px 10px",
+  backgroundColor: "#e0e0e0",
+  borderRadius: "15px",
+  fontSize: "12px",
+  cursor: "pointer",
+  transition: "0.2s",
+  "&:hover": {
+    backgroundColor: "#2196F3",
+    color: "white",
+  },
+});
 
 const BackgroundBox = styled(Box)({
   minHeight: "100vh",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  background: "linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)", 
+  background: "linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)",
   padding: "20px",
 });
 
@@ -111,8 +163,8 @@ const FormCard = styled(Paper)(({ theme }) => ({
   width: "100%",
   maxWidth: "400px",
   borderRadius: "16px",
-  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)", 
-  backgroundColor: "rgba(255, 255, 255, 0.95)", 
+  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+  backgroundColor: "rgba(255, 255, 255, 0.95)",
   [theme.breakpoints.down("sm")]: {
     padding: theme.spacing(3),
   },
@@ -126,7 +178,7 @@ const Heading = styled(Typography)({
 
 const SubHeading = styled(Typography)({
   marginBottom: "32px",
-  color: "#757575", 
+  color: "#757575",
 });
 
 const FormBox = styled(Box)({

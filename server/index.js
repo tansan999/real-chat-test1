@@ -39,6 +39,15 @@ app.get("/users", async (req, res) => {
   }
 });
 
+app.get("/rooms", async (req, res) => {
+  try {
+    const rooms = await Message.distinct("room");
+    res.json(rooms);
+  } catch (e) {
+    res.status(500).json({ message: "Error" });
+  }
+});
+
 io.on("connection", (socket) => {
   socket.on("join", async ({ name, room }) => {
     socket.join(room);
@@ -99,10 +108,15 @@ io.on("connection", (socket) => {
         time: time,
       });
 
-      await newMessage.save();
+      const savedMessage = await newMessage.save();
 
-      io.to(user.room).emit("message", { data: { user, message, time } });
+      io.to(user.room).emit("message", { data: savedMessage });
     }
+  });
+
+  socket.on("deleteMessage", async ({ id, room }) => {
+    await Message.findByIdAndDelete(id);
+    io.to(room).emit("deleteMessage", { id });
   });
 
   socket.on("kick", ({ params }) => {

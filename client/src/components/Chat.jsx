@@ -4,7 +4,7 @@ import io from "socket.io-client";
 import { styled } from "@mui/material/styles";
 import iconEmoji from "../images/emoji.png";
 import EmojiPicker from "emoji-picker-react";
-import Masseges from "./Masseges";
+import Masseges from "./Massages";
 import Sidebar from "./Sidebar";
 
 const socket = io.connect("http://localhost:5000");
@@ -39,6 +39,7 @@ const Chat = () => {
         user: { name: msg.user },
         message: msg.message,
         time: msg.time,
+        _id: msg._id,
       }));
       setState((_state) => [...formattedHistory, ..._state]);
     });
@@ -81,6 +82,18 @@ const Chat = () => {
       }
     }
   }, [roomUsers, params.name, navigate]);
+
+  useEffect(() => {
+    socket.on("deleteMessage", ({ id }) => {
+      setState((_state) => _state.filter((msg) => msg._id !== id));
+    });
+  }, []);
+
+  const handleDeleteMessage = (id) => {
+    if (id) {
+      socket.emit("deleteMessage", { id, room: params.room });
+    }
+  };
 
   const leftRoom = () => {
     socket.emit("leftRoom", { params });
@@ -125,7 +138,12 @@ const Chat = () => {
           </ChatHeader>
 
           <MessagesArea>
-            <Masseges messages={state} name={params.name} />
+            <Masseges
+              messages={state}
+              name={params.name}
+              onDelete={handleDeleteMessage}
+              isAdmin={currentUser.isAdmin}
+            />
             {typingStatus && <TypingIndicator>{typingStatus}</TypingIndicator>}
           </MessagesArea>
 
